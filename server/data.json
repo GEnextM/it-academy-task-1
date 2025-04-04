@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "text": "Мурзик",
+    "votes": 1,
+    "imageUrl": "/public/img1.jpeg"
+  },
+  {
+    "id": 2,
+    "text": "Снежок",
+    "votes": 2,
+    "imageUrl": "/public/img2.jpg"
+  },
+  {
+    "id": 3,
+    "text": "Кнопка",
+    "votes": 2,
+    "imageUrl": "/public/img3.jpg"
+  },
+  {
+    "id": 4,
+    "text": "Лунтик",
+    "votes": 4,
+    "imageUrl": "/public/img4.jpg"
+  }
+]

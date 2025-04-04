@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Голосование: Котики</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+        }
+        img {
+            width: 100px;
+            height: 100px;
+            display: block;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+<h1>Голосование: Какой котик вам нравится больше?</h1>
+<div id="variants" style="display:flex; gap:30px"></div>
+<script>
+    async function fetchVariants() {
+        const response = await fetch('/variants');
+        const variants = await response.json();
+        const variantsDiv = document.getElementById('variants');
+        variantsDiv.innerHTML = '';
+
+        variants.forEach(v => {
+            const variantDiv = document.createElement('div');
+            variantDiv.innerHTML = `
+                    <img src="${v.imageUrl}" alt="Котик ${v.id}">
+                    <div style="display:flex; flex-direction: column">
+                    <button onclick="vote(${v.id})">${v.text}</button>
+                    <span style="padding-top: 16px"> Голосов: ${v.votes}</span></div>
+                `;
+            variantsDiv.appendChild(variantDiv);
+        });
+    }
+
+    async function vote(id) {
+        await fetch('/vote', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ id }),
+        });
+        alert('Ваш голос принят!');
+        fetchVariants();
+    }
+
+    fetchVariants();
+</script>
+</body>
+</html>
