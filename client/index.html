@@ -23,8 +23,8 @@
 <body>
 <h1>Голосование: Какой котик вам нравится больше?</h1>
 <div id="variants" style="display:flex; gap:30px"></div>
-<script>
 
+<script>
     function generateUniqueId() {
         return 'vote-' + Math.random().toString(36).substr(2, 9);
     }
@@ -34,6 +34,7 @@
         voteId = generateUniqueId();
         localStorage.setItem('voteId', voteId);
     }
+
     async function fetchVariants() {
         const response = await fetch('/variants');
         const variants = await response.json();
@@ -45,8 +46,38 @@
             variantDiv.innerHTML = `
                     <img src="${v.imageUrl}" alt="Котик ${v.id}">
                     <div style="display:flex; flex-direction: column">
-                    <button onclick="vote(${v.id})">${v.text}</button>
-                    <span style="padding-top: 16px"> Голосов: ${v.votes}</span></div>
+                        <button onclick="vote(${v.id})">${v.text}</button>
+                        <span style="padding-top: 16px"> Голосов: ${v.votes}</span>
+                    </div>
+                `;
+            variantsDiv.appendChild(variantDiv);
+        });
+    }
+
+    async function fetchStats() {
+        const response = await fetch('/stats', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        const stats = await response.json();
+        return stats;
+    }
+
+    async function updateStatistics() {
+        const stats = await fetchStats();
+        const variantsDiv = document.getElementById('variants');
+        variantsDiv.innerHTML = '';
+
+        stats.forEach(v => {
+            const variantDiv = document.createElement('div');
+            variantDiv.innerHTML = `
+                    <img src="${v.imageUrl}" alt="Котик ${v.id}">
+                    <div style="display:flex; flex-direction: column">
+                        <button onclick="vote(${v.id})">${v.text}</button>
+                        <span style="padding-top: 16px"> Голосов: ${v.votes}</span>
+                    </div>
                 `;
             variantsDiv.appendChild(variantDiv);
         });
@@ -67,10 +98,11 @@
         } else {
             alert(result.message);
         }
-        fetchVariants();
+        updateStatistics();
     }
 
     fetchVariants();
+    updateStatistics();
 </script>
 </body>
 </html>

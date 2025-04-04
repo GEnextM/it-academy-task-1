@@ -9,7 +9,6 @@ interface Variant {
     imageUrl: string;
 }
 
-
 const app = express();
 const PORT = 7180;
 const DATA_FILE = path.resolve(__dirname, '../server/data.json');
@@ -35,7 +34,7 @@ const writeData = (variants: Variant[]) => {
     fs.writeFileSync(DATA_FILE, JSON.stringify(variants, null, 2));
 };
 
-const readUsedVoteIds = (): Set<string> => {
+const readUsedVoteIps = (): Set<string> => {
     if (fs.existsSync(USED_VOTES_FILE)) {
         const data = fs.readFileSync(USED_VOTES_FILE, 'utf-8');
         return new Set(JSON.parse(data));
@@ -43,12 +42,12 @@ const readUsedVoteIds = (): Set<string> => {
     return new Set();
 };
 
-const writeUsedVoteIds = (usedVoteIds: Set<string>) => {
-    fs.writeFileSync(USED_VOTES_FILE, JSON.stringify(Array.from(usedVoteIds), null, 2));
+const writeUsedVoteIps = (usedVoteIps: Set<string>) => {
+    fs.writeFileSync(USED_VOTES_FILE, JSON.stringify(Array.from(usedVoteIps), null, 2));
 };
 
 let variants = readData();
-let usedVoteIds = readUsedVoteIds();
+let usedVoteIps = readUsedVoteIps();
 
 app.get('/variants', (req: Request, res: Response) => {
     res.json(variants);
@@ -56,10 +55,9 @@ app.get('/variants', (req: Request, res: Response) => {
 
 app.post('/vote', (req: Request, res: Response) => {
     const { id } = req.body;
-    const voteId = req.headers['x-vote-id'];
+    const ip = req.connection.remoteAddress;
 
-
-    if (usedVoteIds.has(voteId as string)) {
+    if (ip && usedVoteIps.has(ip)) {
         res.json({ success: false, message: 'Ваш голос уже засчитан <3' });
         return;
     }
@@ -68,8 +66,8 @@ app.post('/vote', (req: Request, res: Response) => {
     if (variant) {
         variant.votes += 1;
         writeData(variants);
-        usedVoteIds.add(voteId as string);
-        writeUsedVoteIds(usedVoteIds);
+        usedVoteIps.add(ip || '0');
+        writeUsedVoteIps(usedVoteIps);
         res.json({ success: true });
         return;
     } else {
@@ -78,7 +76,7 @@ app.post('/vote', (req: Request, res: Response) => {
     }
 });
 
-app.get('/stats', (req: Request, res: Response) => {
+app.post('/stats', (req: Request, res: Response) => {
     res.json(variants);
 });
 
