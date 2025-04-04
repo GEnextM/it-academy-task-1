@@ -24,6 +24,16 @@
 <h1>Голосование: Какой котик вам нравится больше?</h1>
 <div id="variants" style="display:flex; gap:30px"></div>
 <script>
+
+    function generateUniqueId() {
+        return 'vote-' + Math.random().toString(36).substr(2, 9);
+    }
+
+    let voteId = localStorage.getItem('voteId');
+    if (!voteId) {
+        voteId = generateUniqueId();
+        localStorage.setItem('voteId', voteId);
+    }
     async function fetchVariants() {
         const response = await fetch('/variants');
         const variants = await response.json();
@@ -43,14 +53,20 @@
     }
 
     async function vote(id) {
-        await fetch('/vote', {
+        const response = await fetch('/vote', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-Vote-ID': voteId
             },
             body: JSON.stringify({ id }),
         });
-        alert('Ваш голос принят!');
+        const result = await response.json();
+        if (result.success) {
+            alert('Ваш голос принят!');
+        } else {
+            alert(result.message);
+        }
         fetchVariants();
     }
 

@@ -2,25 +2,32 @@
   {
     "id": 1,
     "text": "Мурзик",
-    "votes": 1,
+    "votes": 13,
     "imageUrl": "/public/img1.jpeg"
   },
   {
     "id": 2,
     "text": "Снежок",
-    "votes": 2,
+    "votes": 11,
     "imageUrl": "/public/img2.jpg"
   },
   {
     "id": 3,
     "text": "Кнопка",
-    "votes": 2,
+    "votes": 30,
     "imageUrl": "/public/img3.jpg"
   },
   {
     "id": 4,
     "text": "Лунтик",
-    "votes": 4,
+    "votes": 123,
     "imageUrl": "/public/img4.jpg"
+  },
+  {
+    "id": 5,
+    "text": "Бэтмен",
+    "votes": 170,
+    "imageUrl": "/public/img5.webp"
   }
+
 ]
