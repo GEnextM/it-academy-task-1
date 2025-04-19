@@ -21,6 +21,7 @@ const USED_VOTES_FILE = path.resolve(__dirname, '../server/usedVotes.json');
 
 app.use(express.json());
 app.use('/public', express.static(path.resolve(__dirname, '../client/public')));
+app.use(express.urlencoded({ extended: true }));
 
 const readVariants = (): Variant[] => {
     if (fs.existsSync(DATA_FILE)) {
@@ -121,6 +122,41 @@ app.post('/stats', (req: Request, res: Response) => {
 app.get('/index', (req: Request, res: Response) => {
     res.sendFile(path.resolve(__dirname, '../client/index.html'));
 });
+
+app.get('/form', (req: Request, res: Response) => {
+    // Используем приведение типов и проверку на существование
+    const surname = typeof req.query.surname === 'string' ? req.query.surname : '';
+    const name = typeof req.query.im === 'string' ? req.query.im : '';
+
+    const surnameError = surname.length < 3 && surname.length > 0 ? 'Слишком короткая фамилия!' : '';
+    const nameError = name.length < 3 && name.length > 0 ? 'Слишком короткое имя!' : '';
+
+    if(!surnameError && !nameError && surname.length > 0 && name.length > 0) {
+        res.send(`<h1>Поздравляю</h1>`)
+    } else {
+        res.send(`
+        <form action="/submit" method="post">
+          Фамилия: <input type="text" name="surname" value="${surname}">
+          <span style="color: red;">${surnameError}</span><br>
+          Имя: <input type="text" name="name" value="${name}">
+          <span style="color: red;">${nameError}</span><br>
+          <input type="submit" value="Отправить">
+        </form>
+      `);
+    }
+});
+
+app.post('/submit', (req: Request, res: Response) => {
+    const { surname, name } = req.body;
+    let surnameError = surname.length < 3;
+    let nameError = name.length < 3;
+
+    if (surnameError || nameError) {
+        return res.redirect(`/form?fam=${encodeURIComponent(surname)}&im=${encodeURIComponent(name)}`);
+    }
+    res.send(`Вы ввели: Фамилия - ${surname}, Имя - ${name}`);
+});
+
 
 app.use((req: Request, res: Response) => {
     res.status(404).send('Not Found');
