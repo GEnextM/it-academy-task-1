@@ -157,6 +157,70 @@ app.post('/submit', (req: Request, res: Response) => {
     res.send(`Вы ввели: Фамилия - ${surname}, Имя - ${name}`);
 });
 
+app.get('/postman', (req: Request, res: Response) => {
+    res.sendFile(path.resolve(__dirname, '../client/postman.html'));
+});
+
+
+app.post('/api/postman-request', async (req: Request, res: Response) => {
+    try {
+        const { url, method, params = [], headers = [], body: reqBody, contentType } = req.body;
+        if (!/^https?:\/\/.+/i.test(url)) {
+            res.status(400).json({ error: 'Некорректный URL' });
+            return;
+        }
+        if (!['GET','POST','PUT','DELETE','PATCH','HEAD','OPTIONS'].includes(method.toUpperCase())) {
+            res.status(400).json({ error: 'Некорректный метод' });
+            return;
+        }
+        const headersObj: Record<string, string> = {};
+        headers.forEach(({ key, value }: { key: string, value: string }) => {
+            if (key) headersObj[key] = value;
+        });
+        if (contentType) headersObj['Content-Type'] = contentType;
+
+        let finalUrl = url;
+        if (params.length && ['GET','DELETE','HEAD'].includes(method.toUpperCase())) {
+            const query = params
+                .filter((p: any) => p.key)
+                .map((p: any) => `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value || '')}`)
+                .join('&');
+            finalUrl += (url.includes('?') ? '&' : '?') + query;
+        }
+
+        const fetchOptions: any = {
+            method,
+            headers: headersObj,
+            body: ['GET','DELETE','HEAD'].includes(method.toUpperCase()) ? undefined : reqBody
+        };
+
+        const response = await fetch(finalUrl, fetchOptions);
+        const contentTypeHeader = response.headers.get('content-type') || '';
+        let responseBody: any;
+
+        if (contentTypeHeader.includes('application/json')) {
+            responseBody = await response.json();
+        } else if (contentTypeHeader.startsWith('image/')) {
+            const arrayBuffer = await response.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            responseBody = buffer.toString('hex').match(/.{1,2}/g)?.join(' ');
+        } else {
+            responseBody = await response.text();
+        }
+
+        const headersObjRes: Record<string, string> = {};
+        response.headers.forEach((v, k) => headersObjRes[k] = v);
+
+        res.json({
+            status: response.status,
+            headers: headersObjRes,
+            body: responseBody,
+            contentType: contentTypeHeader
+        });
+    } catch (err) {
+        res.status(500).json({ error: String(err) });
+    }
+});
 
 app.use((req: Request, res: Response) => {
     res.status(404).send('Not Found');
