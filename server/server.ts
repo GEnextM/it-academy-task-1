@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import fs from 'fs';
 import path from 'path';
+import fetch from 'node-fetch';
 
 interface Variant {
     id: number;
