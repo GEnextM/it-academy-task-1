@@ -52,7 +52,6 @@
   <div id="response"></div>
 </div>
 <script>
-  let savedReqs = JSON.parse(localStorage.getItem('reqs')||'[]');
   async function renderSaved() {
     const response = await fetch('/api/get-requests');
     const savedReqs = await response.json();
@@ -62,17 +61,22 @@
             <b>Метод: ${r.method}</b><br>${r.url}
         </div>`).join('');
   }
-  function fillForm(i) {
+
+  async function fillForm(i) {
+    const response = await fetch('/api/get-requests');
+    const savedReqs = await response.json();
     const r = savedReqs[i];
+
     method.value = r.method;
     url.value = r.url;
-    contentType.value = r.contentType||'';
-    body.value = r.body||'';
+    contentType.value = r.contentType || '';
+    body.value = r.body || '';
     params.innerHTML = '';
-    (r.params||[]).forEach(({key,value})=>addParam(key,value));
+    (r.params || []).forEach(({ key, value }) => addParam(key, value));
     headers.innerHTML = '';
-    (r.headers||[]).forEach(({key,value})=>addHeader(key,value));
+    (r.headers || []).forEach(({ key, value }) => addHeader(key, value));
   }
+
   function addParam(key='',value='') {
     params.insertAdjacentHTML('beforeend', `<div>
     <div>Параметр:</div>
