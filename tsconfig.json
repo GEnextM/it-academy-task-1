@@ -1,9 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES6",
-    "module": "NodeNext",
-    "target": "ES2020",
-    "moduleResolution": "NodeNext",
+    "module": "commonjs",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,

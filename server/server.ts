@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import fs from 'fs';
 import path from 'path';
-import fetch from 'node-fetch';
+import axios, { AxiosRequestConfig, Method } from 'axios';
 
 interface Variant {
     id: number;
@@ -174,6 +174,7 @@ app.post('/api/postman-request', async (req: Request, res: Response) => {
             res.status(400).json({ error: 'Некорректный метод' });
             return;
         }
+
         const headersObj: Record<string, string> = {};
         headers.forEach(({ key, value }: { key: string, value: string }) => {
             if (key) headersObj[key] = value;
@@ -189,36 +190,36 @@ app.post('/api/postman-request', async (req: Request, res: Response) => {
             finalUrl += (url.includes('?') ? '&' : '?') + query;
         }
 
-        const fetchOptions: any = {
-            method,
+        const axiosConfig: AxiosRequestConfig = {
+            method: method as Method,
+            url: finalUrl,
             headers: headersObj,
-            body: ['GET','DELETE','HEAD'].includes(method.toUpperCase()) ? undefined : reqBody
+            data: ['GET','DELETE','HEAD'].includes(method.toUpperCase()) ? undefined : reqBody,
+            responseType: 'arraybuffer', // чтобы поддерживать и текст, и картинки
+            validateStatus: () => true, // чтобы не кидал ошибку при любом статусе
         };
 
-        const response = await fetch(finalUrl, fetchOptions);
-        const contentTypeHeader = response.headers.get('content-type') || '';
+        const response = await axios(axiosConfig);
+
+        const contentTypeHeader = response.headers['content-type'] || '';
         let responseBody: any;
 
         if (contentTypeHeader.includes('application/json')) {
-            responseBody = await response.json();
+            responseBody = JSON.parse(Buffer.from(response.data).toString('utf8'));
         } else if (contentTypeHeader.startsWith('image/')) {
-            const arrayBuffer = await response.arrayBuffer();
-            const buffer = Buffer.from(arrayBuffer);
+            const buffer = Buffer.from(response.data);
             responseBody = buffer.toString('hex').match(/.{1,2}/g)?.join(' ');
         } else {
-            responseBody = await response.text();
+            responseBody = Buffer.from(response.data).toString('utf8');
         }
-
-        const headersObjRes: Record<string, string> = {};
-        response.headers.forEach((v, k) => headersObjRes[k] = v);
 
         res.json({
             status: response.status,
-            headers: headersObjRes,
+            headers: response.headers,
             body: responseBody,
             contentType: contentTypeHeader
         });
-    } catch (err) {
+    } catch (err: any) {
         res.status(500).json({ error: String(err) });
     }
 });
