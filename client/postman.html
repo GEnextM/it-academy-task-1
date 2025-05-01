@@ -53,11 +53,14 @@
 </div>
 <script>
   let savedReqs = JSON.parse(localStorage.getItem('reqs')||'[]');
-  function renderSaved() {
-    saved.innerHTML = savedReqs.map((r,i)=>
+  async function renderSaved() {
+    const response = await fetch('/api/get-requests');
+    const savedReqs = await response.json();
+
+    saved.innerHTML = savedReqs.map((r, i) =>
             `<div class="req ${r.method.toLowerCase()}" onclick="fillForm(${i})">
-      <b>Метод: ${r.method}</b><br>${r.url}
-    </div>`).join('');
+            <b>Метод: ${r.method}</b><br>${r.url}
+        </div>`).join('');
   }
   function fillForm(i) {
     const r = savedReqs[i];
@@ -94,10 +97,21 @@
       headers: Array.from(headers.querySelectorAll('div')).map(d=>({key:d.children[0].value,value:d.children[1].value}))
     };
   }
-  function saveReq() {
-    savedReqs.push(getFormData());
-    localStorage.setItem('reqs',JSON.stringify(savedReqs));
-    renderSaved();
+
+  async function saveReq() {
+    const requestData = getFormData();
+    const response = await fetch('/api/save-request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestData)
+    });
+
+    if (response.ok) {
+      alert('Запрос сохранен!');
+      renderSaved()
+    } else {
+      alert('Ошибка при сохранении запроса.');
+    }
   }
   function clearForm() {
     reqForm.reset();

@@ -158,6 +158,34 @@ app.post('/submit', (req: Request, res: Response) => {
     res.send(`Вы ввели: Фамилия - ${surname}, Имя - ${name}`);
 });
 
+const REQUESTS_FILE = path.resolve(__dirname, '../server/requests.json');
+
+
+const readRequests = (): any[] => {
+    if (fs.existsSync(REQUESTS_FILE)) {
+        const data = fs.readFileSync(REQUESTS_FILE, 'utf-8');
+        return JSON.parse(data);
+    }
+    return [];
+};
+
+const writeRequests = (requests: any[]) => {
+    fs.writeFileSync(REQUESTS_FILE, JSON.stringify(requests, null, 2));
+};
+
+app.post('/api/save-request', (req: Request, res: Response) => {
+    const requestData = req.body;
+    const requests = readRequests();
+    requests.push(requestData);
+    writeRequests(requests);
+    res.status(201).json({ success: true });
+});
+
+app.get('/api/get-requests', (req: Request, res: Response) => {
+    const requests = readRequests();
+    res.json(requests);
+});
+
 app.get('/postman', (req: Request, res: Response) => {
     res.sendFile(path.resolve(__dirname, '../client/postman.html'));
 });
@@ -197,6 +225,7 @@ app.post('/api/postman-request', async (req: Request, res: Response) => {
             data: ['GET','DELETE','HEAD'].includes(method.toUpperCase()) ? undefined : reqBody,
             responseType: 'arraybuffer', // чтобы поддерживать и текст, и картинки
             validateStatus: () => true, // чтобы не кидал ошибку при любом статусе
+            maxRedirects: 0,
         };
 
         const response = await axios(axiosConfig);

@@ -1,0 +1,26 @@
+[
+  {
+    "method": "GET",
+    "url": "http://nodearch.e-learning.by:4052/main1.html",
+    "contentType": "",
+    "body": "",
+    "params": [],
+    "headers": []
+  },
+  {
+    "method": "GET",
+    "url": "http://fe.it-academy.by/aaa.gif",
+    "contentType": "",
+    "body": "",
+    "params": [],
+    "headers": []
+  },
+  {
+    "method": "GET",
+    "url": "https://www.ibm.com/products/api-connect?lnk=flatitem&test=1234 ",
+    "contentType": "",
+    "body": "",
+    "params": [],
+    "headers": []
+  }
+]
